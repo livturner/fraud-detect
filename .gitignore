@@ -22,3 +22,5 @@ outputs/
 .vscode/
 .idea/
 EOF
+
+*egg-info/
