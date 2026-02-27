@@ -6,6 +6,7 @@ import duckdb
 import pandas as pd
 
 from fraud_pipeline.config import get_settings
+from fraud_pipeline.validate import validate_raw
 
 
 def ingest_csv_to_duckdb(
@@ -39,6 +40,8 @@ def ingest_csv_to_duckdb(
         con.execute(f"DROP TABLE IF EXISTS {table_name}")
         con.register("df_view", df)
         con.execute(f"CREATE TABLE {table_name} AS SELECT * FROM df_view")
+        validate_raw(con, table=table_name)
+        print("✅ Raw table validation passed")
 
         # Sanity queries
         row_count = con.execute(f"SELECT COUNT(*) FROM {table_name}").fetchone()[0]
