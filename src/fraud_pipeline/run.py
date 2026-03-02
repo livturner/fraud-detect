@@ -22,9 +22,10 @@ def run_features() -> None:
         con.close()
 
 def run_model() -> None:
-    from fraud_pipeline.model.train import train_baseline
+    from fraud_pipeline.model.train import train_baseline, train_enhanced_model
     settings = get_settings()
     train_baseline(db_path=settings.db_path)
+    train_enhanced_model(db_path=settings.db_path)
 
 def main() -> None:
     if len(sys.argv) < 2:
