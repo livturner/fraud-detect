@@ -4,8 +4,9 @@ from pathlib import Path
 
 import duckdb
 import pandas as pd
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import classification_report, roc_auc_score, precision_score, recall_score
+from sklearn.metrics import (average_precision_score, classification_report, roc_auc_score, precision_score, recall_score)
 
 from fraud_pipeline.config import get_settings
 
@@ -33,28 +34,41 @@ def train_baseline(db_path: Path, feature_table: str = "transactions_features") 
     X_test = test_df[baseline_cols]  # features only
     y_test = test_df["Class"]  # labels
 
-    model = LogisticRegression(class_weight="balanced", max_iter=5000) # use balanced class weights due to class imbalance
-
-    model.fit(X_train, y_train)
-
-    y_pred_proba = model.predict_proba(X_test)[:, 1]  # probability of positive class (fraud)
+    models = {
+        "Logistic Regression": LogisticRegression(class_weight="balanced", max_iter=5000),
+        "Random Forest": RandomForestClassifier(class_weight="balanced", n_estimators=300, random_state=42, n_jobs=-1)
+    }
     
-    print ("\nThreshold tuning for baseline model:")
-
     thresholds = [0.01, 0.02, 0.05, 0.1, 0.2, 0.3, 0.5]
-    for threshold in thresholds:
-        y_pred = (y_pred_proba >= threshold).astype(int)
-        precision = precision_score(y_test, y_pred, zero_division=0) # set zero_division=0 to avoid warnings when there are no positive predictions at high thresholds
-        recall = recall_score(y_test, y_pred)
 
-        flagged = y_pred.sum()
-        total = len(y_pred) 
-        flag_rate = flagged / total # percentage of transactions flagged as fraud at this threshold
+    for name, model in models.items():
+        print(f"\nTraining {name}...")
+
+        model.fit(X_train, y_train)
+
+        y_pred_proba = model.predict_proba(X_test)[:, 1]  # probability of positive class (fraud)
+    
+        roc_auc = roc_auc_score(y_test, y_pred_proba)
+        pr_auc = average_precision_score(y_test, y_pred_proba)
+        print(f"{name} AUC: {roc_auc:.4f}, PR AUC: {pr_auc:.4f}")
+
+        # default threshold snapshot
+        y_pred_05 = (y_pred_proba >= 0.5).astype(int)
+        print(f"\nClassification Report for {name} (threshold=0.5):")
+        print(classification_report(y_test, y_pred_05, zero_division=0))
+
+        print (f"\nPrecision/Recall at different thresholds for {name}:")
+        total = len(y_test)
+        for t in thresholds:
+            y_pred = (y_pred_proba >= t).astype(int)
+            precision = precision_score(y_test, y_pred, zero_division=0) # set zero_division=0 to avoid warnings when there are no positive predictions at high thresholds
+            recall = recall_score(y_test, y_pred)
+
+            flagged = y_pred.sum()
+            flag_rate = flagged / total # percentage of transactions flagged as fraud at this threshold
         
-        print(f"Threshold: {threshold:.2f} | Precision: {precision:.4f} | Recall: {recall:.4f} | Flagged: {flagged}/{total} {flag_rate:.4f}")
+            print(f"Threshold: {t:.2f} | Precision: {precision:.4f} | Recall: {recall:.4f} | Flagged: {flagged}/{total} {flag_rate:.4f}")
 
-    auc = roc_auc_score(y_test, y_pred_proba)
-    print(f"AUC: {auc:.4f}")
 
 def train_enhanced_model(db_path: Path, feature_table: str = "transactions_features") -> None:
     # Similar to train_baseline but includes engineered features like log_amount, rolling mean/stddev, and z-score
