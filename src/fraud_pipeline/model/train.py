@@ -5,7 +5,7 @@ from pathlib import Path
 import duckdb
 import pandas as pd
 from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import classification_report, roc_auc_score
+from sklearn.metrics import classification_report, roc_auc_score, precision_score, recall_score
 
 from fraud_pipeline.config import get_settings
 
@@ -38,13 +38,15 @@ def train_baseline(db_path: Path, feature_table: str = "transactions_features") 
     model.fit(X_train, y_train)
 
     y_pred_proba = model.predict_proba(X_test)[:, 1]  # probability of positive class (fraud)
-    y_pred = (y_pred_proba >= 0.5).astype(int)  # threshold at 0.5
-    print(classification_report(y_test, y_pred))
+    
+    print ("\nThreshold tuning:")
+
+    thresholds = [0.01, 0.02, 0.05, 0.1, 0.2, 0.3, 0.5]
+    for threshold in thresholds:
+        y_pred = (y_pred_proba >= threshold).astype(int)
+        precision = precision_score(y_test, y_pred, zero_division=0) # set zero_division=0 to avoid warnings when there are no positive predictions at high thresholds
+        recall = recall_score(y_test, y_pred)
+        print(f"Threshold: {threshold:.2f} | Precision: {precision:.4f} | Recall: {recall:.4f}")
 
     auc = roc_auc_score(y_test, y_pred_proba)
     print(f"AUC: {auc:.4f}")
-
-if __name__ == "__main__":
-    settings = get_settings()
-    train_baseline(db_path=settings.db_path)
-    

@@ -21,10 +21,15 @@ def run_features() -> None:
     finally:
         con.close()
 
+def run_model() -> None:
+    from fraud_pipeline.model.train import train_baseline
+    settings = get_settings()
+    train_baseline(db_path=settings.db_path)
+
 def main() -> None:
     if len(sys.argv) < 2:
         print("Usage: python -m fraud_pipeline.run <step>")
-        print("Steps: ingest, features")
+        print("Steps: ingest, features, model")
         raise SystemExit(1)
     
     step = sys.argv[1].lower()
@@ -33,8 +38,10 @@ def main() -> None:
         run_ingest()
     elif step == "features":
         run_features()
+    elif step == "model":
+        run_model()
     else:
-        raise SystemExit(f"Unknown step: {step}. Valid steps: ingest, features")
+        raise SystemExit(f"Unknown step: {step}. Valid steps: ingest, features, model")
     
 if __name__ == "__main__":
     main()
