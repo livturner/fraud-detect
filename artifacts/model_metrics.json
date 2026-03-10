@@ -1,0 +1,12 @@
+[
+  {
+    "model": "Logistic Regression",
+    "roc_auc": 0.9862540285248861,
+    "pr_auc": 0.761698872651144
+  },
+  {
+    "model": "Random Forest",
+    "roc_auc": 0.9636696785383634,
+    "pr_auc": 0.8196021658655811
+  }
+]
