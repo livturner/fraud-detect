@@ -10,6 +10,9 @@ from dotenv import load_dotenv
 class Settings:
     csv_path: Path
     db_path: Path
+    model_path: Path
+    predictions_output_path: Path
+    sample_csv_path: Path
 
 def get_settings() -> Settings:
     """
@@ -24,6 +27,7 @@ def get_settings() -> Settings:
 
     csv_raw = os.getenv("FRAUD_CSV_PATH")
     db_raw = os.getenv("FRAUD_DB_PATH")
+    
 
     if not csv_raw:
         raise RuntimeError("Missing env var: FRAUD_CSV_PATH")
@@ -33,4 +37,10 @@ def get_settings() -> Settings:
     csv_path = Path(csv_raw).expanduser().resolve()
     db_path = Path(db_raw).expanduser().resolve()
 
-    return Settings(csv_path=csv_path, db_path=db_path)
+    repo_root = Path(__file__).resolve().parents[2]
+
+    return Settings(csv_path=csv_path, 
+                    db_path=db_path,
+                    model_path=repo_root / "artifacts" / "models" / "random_forest.joblib",
+                    predictions_output_path=repo_root / "artifacts" / "predictions.csv",
+                    sample_csv_path=repo_root / "data" / "raw" / "sample_transactions.csv",)

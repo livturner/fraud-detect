@@ -26,11 +26,21 @@ def run_model() -> None:
     settings = get_settings()
     train_and_evaluate(
         db_path=settings.db_path)
+    
+def run_predict() -> None:
+    from fraud_pipeline.model.predict import predict
+    settings = get_settings()
+    predict(
+        csv_path=settings.sample_csv_path,
+        model_path=settings.model_path,
+        threshold=0.1,
+        output_path=settings.predictions_output_path
+    )
 
 def main() -> None:
     if len(sys.argv) < 2:
         print("Usage: python -m fraud_pipeline.run <step>")
-        print("Steps: ingest, features, model")
+        print("Steps: ingest, features, model, predict")
         raise SystemExit(1)
     
     step = sys.argv[1].lower()
@@ -41,8 +51,10 @@ def main() -> None:
         run_features()
     elif step == "model":
         run_model()
+    elif step == "predict":
+        run_predict()
     else:
-        raise SystemExit(f"Unknown step: {step}. Valid steps: ingest, features, model")
+        raise SystemExit(f"Unknown step: {step}. Valid steps: ingest, features, model, predict")
     
 if __name__ == "__main__":
     main()
