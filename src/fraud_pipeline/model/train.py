@@ -3,6 +3,9 @@ from __future__ import annotations
 from pathlib import Path
 import json
 
+
+import joblib
+
 import duckdb
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -113,6 +116,20 @@ def evaluate_thresholds(
 
     return rows
 
+def save_models(
+    trained_models: dict,
+    artifacts_dir: Path,
+) -> None:
+    """
+    Persist trained models to disk using joblib.
+    """
+    models_dir = artifacts_dir / "models"
+    models_dir.mkdir(parents=True, exist_ok=True)
+
+    for name, model in trained_models.items():
+        filename = name.lower().replace(" ", "_") + ".joblib"
+        joblib.dump(model, models_dir / filename)
+        print(f"Saved model: {models_dir / filename}")
 
 def save_artifacts(
     metrics_rows: list[dict],
@@ -228,6 +245,7 @@ def train_and_evaluate(
 
     metrics_rows = []
     threshold_rows = []
+    trained_models = {}
     curve_data = {}
 
     for name, model in models.items():
@@ -236,6 +254,7 @@ def train_and_evaluate(
         print("=" * 80)
 
         model.fit(X_train, y_train)
+        trained_models[name] = model
 
         y_pred_proba = model.predict_proba(X_test)[:, 1]
 
@@ -290,4 +309,9 @@ def train_and_evaluate(
         curve_data=curve_data,
         threshold_df=threshold_df,
         figures_dir=figures_dir,
+    )
+
+    save_models(
+        trained_models=trained_models,
+        artifacts_dir=artifacts_dir,
     )
