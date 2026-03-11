@@ -134,6 +134,7 @@ Threshold tuning experiments allow this balance to be adjusted depending on oper
 .
 fraud-detect
 ├── artifacts   # saved model metrics and experiment outputs
+│   └── models 
 ├── data
 │   ├── raw        # original dataset
 │   └── interim    # DuckDB feature store 
