@@ -3,32 +3,24 @@
 ## Project structure
 
 ```
-├── README.md
-├── artifacts
-│   ├── model_metrics.csv
-│   ├── model_metrics.json
-│   └── threshold_results.csv
+.
+fraud-detect
+├── artifacts   # saved experiment outputs
 ├── data
-│   ├── interim
-│   │   └── fraud.duckdb
-│   └── raw
-│       └── creditcard.csv
-├── pyproject.toml
+│   ├── interim # original dataset
+│   └── raw     # DuckDB feature store 
 ├── report
-│   └── figures
-│       ├── pr_curve.png
-│       ├── rf_threshold_tradeoff.png
-│       └── roc_curve.png
-├── requirements.txt
+│   └── figures # evaluation plots
 └── src
-    └── fraud_pipeline
-        ├── __init__.py
-        ├── config.py
+    └── fraud_pipeline  # main ML pipeline
         ├── ingest
         ├── model
-        ├── run.py
+            └── train.py   
+        ├── run.py  # CLI entry point
         ├── transform
+            └── features.py  
         └── validate.py
+        
 ```
 
 
