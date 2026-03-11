@@ -11,13 +11,16 @@ from fraud_pipeline.validate import validate_raw
 
 def ingest_csv_to_duckdb(
     csv_path: Path,
-    db_path: Path,
+    db_path: Path | None = None,
     table_name: str = "transactions_raw",
+    con: duckdb.DuckDBPyConnection | None = None,
 ) -> None:
     """
     Load the credit card fraud CSV into DuckDB.
 
-    Creates/overwrites `table_name` in `db_path`.
+    Creates/overwrites `table_name` in `db_path` or in a provided connection.
+    If `con` is provided, it will be used directly and not closed.
+    If `con` is None, a new connection to `db_path` will be created and closed after use.
     Prints a few sanity checks after writing.
     """
     if not csv_path.exists():
@@ -35,7 +38,15 @@ def ingest_csv_to_duckdb(
         raise ValueError(f"Missing expected columns: {missing}. Found: {list(df.columns)[:10]}...")
 
     # Write to DuckDB
-    con = duckdb.connect(str(db_path))
+    if con is None:
+        if db_path is None:
+            raise ValueError("Either db_path or con must be provided")
+        db_path.parent.mkdir(parents=True, exist_ok=True)
+        con = duckdb.connect(str(db_path))
+        should_close = True
+    else:
+        should_close = False
+
     try:
         con.execute(f"DROP TABLE IF EXISTS {table_name}")
         con.register("df_view", df)
@@ -62,13 +73,5 @@ def ingest_csv_to_duckdb(
         print(f"Amount range: {amt_min} → {amt_max}")
 
     finally:
-        con.close()
-
-
-def main() -> None:
-    settings = get_settings()
-    ingest_csv_to_duckdb(csv_path=settings.csv_path, db_path=settings.db_path)
-
-
-if __name__ == "__main__":
-    main()
+        if should_close:
+            con.close()
