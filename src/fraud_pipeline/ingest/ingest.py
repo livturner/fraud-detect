@@ -14,6 +14,7 @@ def ingest_csv_to_duckdb(
     db_path: Path | None = None,
     table_name: str = "transactions_raw",
     con: duckdb.DuckDBPyConnection | None = None,
+    is_predict: bool = False,
 ) -> None:
     """
     Load the credit card fraud CSV into DuckDB.
@@ -26,13 +27,11 @@ def ingest_csv_to_duckdb(
     if not csv_path.exists():
         raise FileNotFoundError(f"CSV not found at: {csv_path}")
 
-    db_path.parent.mkdir(parents=True, exist_ok=True)
-
     # Read CSV
     df = pd.read_csv(csv_path)
 
     # Basic sanity checks on expected columns
-    expected_cols = {"Time", "Amount", "Class"}
+    expected_cols = {"Time", "Amount"} if is_predict else {"Time", "Amount", "Class"}
     missing = expected_cols - set(df.columns)
     if missing:
         raise ValueError(f"Missing expected columns: {missing}. Found: {list(df.columns)[:10]}...")
@@ -51,8 +50,9 @@ def ingest_csv_to_duckdb(
         con.execute(f"DROP TABLE IF EXISTS {table_name}")
         con.register("df_view", df)
         con.execute(f"CREATE TABLE {table_name} AS SELECT * FROM df_view")
-        validate_raw(con, table=table_name)
-        print("✅ Raw table validation passed")
+        if not is_predict:
+            validate_raw(con, table=table_name)
+            print("Raw table validation passed")
 
         # Sanity queries
         row_count = con.execute(f"SELECT COUNT(*) FROM {table_name}").fetchone()[0]
@@ -64,7 +64,7 @@ def ingest_csv_to_duckdb(
             f"SELECT MIN(Amount), MAX(Amount) FROM {table_name}"
         ).fetchone()
 
-        print("✅ Ingestion complete")
+        print("Ingestion complete")
         print(f"DB: {db_path}")
         print(f"Table: {table_name}")
         print(f"Rows: {row_count}")
