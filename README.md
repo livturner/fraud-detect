@@ -74,6 +74,36 @@ Threshold experiments are saved as artifacts for analysis.
 The Random Forest model improved precision-recall performance copared to the linear baseline, suggesting that non-linear interactions between features contribute to fraud detection.
 
 ---
+## Operational Trade-offs
+
+Fraud detection systems must balance two competing objectives:
+
+**Recall** - catching as many fraudulent transactions as possible
+
+**Precision** - avoiding unnecessary investigation of legitimate transactions
+
+Lower classification thresholds increase recall but flag more transactions for investigation. Higher thresholds improve precision but risk missing fraudulent activity.
+
+In practice, fraud detection systems often prefer **higher recall**, since the cost of missed fraud can exceed the cost of investigating additional transactions.
+
+Threshold tuning experiments allow this balance to be adjusted depending on operational requirements.
+
+---
+## Evaluation
+
+### ROC Curve
+
+![ROC Curve](report/figures/roc_curve.png)
+
+### Precision–Recall Curve
+
+![PR Curve](report/figures/pr_curve.png)
+
+### Threshold Trade-off
+
+![Threshold Tradeoff](report/figures/rf_threshold_tradeoff.png)
+
+---
 ## Running the Pipeline
 
 1. Download the dataset from Kaggle.
@@ -119,5 +149,6 @@ fraud-detect
             └── features.py  
         └── validate.py
 ```
+
 
 
