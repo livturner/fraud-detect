@@ -55,6 +55,16 @@ def time_split(df: pd.DataFrame, train_frac: float = 0.8) -> tuple[pd.DataFrame,
     return train_df, test_df
 
 
+def save_test_set(test_df: pd.DataFrame, repo_root: Path) -> None:
+    """
+    Save held-out test transactions with Class dropped for use in predict.py demo.
+    """
+    output_path = repo_root / "data" / "raw" / "sample_transactions.csv"
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    test_df.drop(columns=["Class"]).to_csv(output_path, index=False)
+    print(f"Saved sample transactions to: {output_path}")
+
+
 def build_model_dict() -> dict:
     """
     Return the models to compare.
@@ -315,3 +325,8 @@ def train_and_evaluate(
         trained_models=trained_models,
         artifacts_dir=artifacts_dir,
     )
+
+    save_test_set(
+        test_df=test_df, 
+        repo_root=repo_root,
+        )
