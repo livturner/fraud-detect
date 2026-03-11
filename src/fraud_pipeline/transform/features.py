@@ -4,7 +4,6 @@ from pathlib import Path
 import duckdb
 import pandas as pd
 
-from fraud_pipeline.config import get_settings
 
 def build_features(con: duckdb.DuckDBPyConnection, raw_table: str = "transactions_raw", feature_table: str = "transactions_features", window_rows: int = 1000) -> None:
     """
@@ -30,8 +29,8 @@ def build_features(con: duckdb.DuckDBPyConnection, raw_table: str = "transaction
         stats AS (
             SELECT
             *,
-            avg(Amount) OVER (ORDER BY txn_id ROWS BETWEEN {window_rows} PRECEDING AND 1 PRECEEDING) AS amt_mean_1k, -- rolling mean of amount over last 1000 transactions
-            stddev_samp(Amount) OVER (ORDER BY txn_id ROWS BETWEEN {window_rows} PRECEDING AND 1 PRECEEDING) AS amt_std_1k -- rolling stddev of amount over last 1000 transactions
+            avg(Amount) OVER (ORDER BY txn_id ROWS BETWEEN {window_rows} PRECEDING AND 1 PRECEDING) AS amt_mean_1k, -- rolling mean of amount over last 1000 transactions
+            stddev_samp(Amount) OVER (ORDER BY txn_id ROWS BETWEEN {window_rows} PRECEDING AND 1 PRECEDING) AS amt_std_1k -- rolling stddev of amount over last 1000 transactions
             FROM base
         )
         SELECT
