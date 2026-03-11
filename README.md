@@ -5,10 +5,10 @@
 ```
 .
 fraud-detect
-├── artifacts   # saved experiment outputs
+├── artifacts   # saved model metrics and experiment outputs
 ├── data
-│   ├── interim # original dataset
-│   └── raw     # DuckDB feature store 
+│   ├── raw        # original dataset
+│   └── interim    # DuckDB feature store 
 ├── report
 │   └── figures # evaluation plots
 └── src
@@ -20,7 +20,6 @@ fraud-detect
         ├── transform
             └── features.py  
         └── validate.py
-        
 ```
 
 
