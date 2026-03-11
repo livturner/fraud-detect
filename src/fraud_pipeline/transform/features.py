@@ -5,11 +5,15 @@ import duckdb
 import pandas as pd
 
 
-def build_features(con: duckdb.DuckDBPyConnection, raw_table: str = "transactions_raw", feature_table: str = "transactions_features", window_rows: int = 1000) -> None:
+def build_features(con: duckdb.DuckDBPyConnection, raw_table: str = "transactions_raw", 
+                   feature_table: str = "transactions_features", is_predict: bool = False, 
+                   window_rows: int = 1000) -> None:
+    
     """
     Build a features table from the raw transactions table.
 
     """
+    class_col = "" if is_predict else "Class,"
     con.execute(f"DROP TABLE IF EXISTS {feature_table}")
     con.execute(f"""
         CREATE TABLE {feature_table} AS
@@ -17,12 +21,12 @@ def build_features(con: duckdb.DuckDBPyConnection, raw_table: str = "transaction
         SELECT
             Time,
             Amount,
-            Class,
+            {class_col}
             V1, V2, V3, V4, V5, V6, V7, V8, V9, V10,
             V11, V12, V13, V14, V15, V16, V17, V18, V19, V20,
             V21, V22, V23, V24, V25, V26, V27, V28,
             -- Simple derived feature: log amount
-            LOG(Amount + 1) AS log_amount -- add 1 to avoid log(0),
+            LOG(Amount + 1) AS log_amount, -- add 1 to avoid log(0)
             row_number() OVER (ORDER BY Time, Amount) AS txn_id -- unique transaction ID
         FROM {raw_table}
         ),
@@ -36,7 +40,7 @@ def build_features(con: duckdb.DuckDBPyConnection, raw_table: str = "transaction
         SELECT
             Time,
             Amount,
-            Class,
+            {class_col}
             V1, V2, V3, V4, V5, V6, V7, V8, V9, V10,
             V11, V12, V13, V14, V15, V16, V17, V18, V19, V20,
             V21, V22, V23, V24, V25, V26, V27, V28,

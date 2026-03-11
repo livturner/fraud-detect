@@ -30,11 +30,9 @@ def predict(
 
     con = duckdb.connect()
     try:
-        ingest_csv_to_duckdb(csv_path=csv_path, con=con)
+        ingest_csv_to_duckdb(csv_path=csv_path, con=con, is_predict=True)
         
-        con.execute("ALTER TABLE transactions_raw ADD COLUMN Class INTEGER DEFAULT 0")
-        
-        build_features(con=con)
+        build_features(con=con, is_predict=True)
     
         df = con.execute("SELECT * FROM transactions_features").fetchdf()
 

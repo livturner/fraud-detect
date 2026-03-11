@@ -56,7 +56,8 @@ def ingest_csv_to_duckdb(
 
         # Sanity queries
         row_count = con.execute(f"SELECT COUNT(*) FROM {table_name}").fetchone()[0]
-        fraud_count = con.execute(f"SELECT COUNT(*) FROM {table_name} WHERE Class = 1").fetchone()[0]
+        if not is_predict:
+            fraud_count = con.execute(f"SELECT COUNT(*) FROM {table_name} WHERE Class = 1").fetchone()[0]
         time_min, time_max = con.execute(
             f"SELECT MIN(Time), MAX(Time) FROM {table_name}"
         ).fetchone()
@@ -68,7 +69,8 @@ def ingest_csv_to_duckdb(
         print(f"DB: {db_path}")
         print(f"Table: {table_name}")
         print(f"Rows: {row_count}")
-        print(f"Fraud rows (Class=1): {fraud_count}")
+        if not is_predict:
+            print(f"Fraud rows (Class=1): {fraud_count}")
         print(f"Time range: {time_min} → {time_max}")
         print(f"Amount range: {amt_min} → {amt_max}")
 
