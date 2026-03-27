@@ -110,7 +110,7 @@ The threshold sweep artifacts allow this balance to be adjusted to match operati
 
         python -m venv .venv
         source .venv/bin/activate
-        pip install -e .
+        pip install -r requirements.txt
 
 2. Create a `.env` file in the project root:
 
